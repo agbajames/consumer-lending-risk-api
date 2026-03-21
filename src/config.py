@@ -18,6 +18,17 @@ TEST_SIZE = 0.2
 RANDOM_STATE = 42
 DEFAULT_THRESHOLD = 0.5
 
+# Columns whose missingness pattern is a near-perfect target proxy.
+# These are post-origination fields populated only for performing loans,
+# so including them would give the model a trivial shortcut (AUC → 1.0).
+LEAKY_COLS = [
+    "rate_of_interest",
+    "Interest_rate_spread",
+    "Upfront_charges",
+    "property_value",
+    "LTV",
+]
+
 # Ensure directories exist
 ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
 PROCESSED_DIR.mkdir(parents=True, exist_ok=True)

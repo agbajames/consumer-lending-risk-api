@@ -20,6 +20,7 @@ EXPOSE 8000
 HEALTHCHECK CMD curl -fsS http://localhost:8000/health || exit 1
 
 # Run as non-root
-USER 1000
+RUN useradd --uid 1000 --no-create-home appuser
+USER appuser
 
 CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8000"]

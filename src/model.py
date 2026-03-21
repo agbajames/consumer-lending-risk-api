@@ -5,6 +5,8 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.calibration import CalibratedClassifierCV
 
+from .config import RANDOM_STATE
+
 
 def split_feature_types(X) -> Tuple[List[str], List[str]]:
     """Split columns into numeric and categorical lists."""
@@ -26,7 +28,7 @@ def _make_estimator(*, backend: str, y: Optional[object]):
             subsample=0.9,
             colsample_bytree=0.9,
             class_weight="balanced",  # handles imbalance
-            random_state=42,
+            random_state=RANDOM_STATE,
             n_jobs=-1,
         )
     
@@ -48,7 +50,7 @@ def _make_estimator(*, backend: str, y: Optional[object]):
             colsample_bytree=0.9,
             reg_lambda=1.0,
             reg_alpha=0.0,
-            random_state=42,
+            random_state=RANDOM_STATE,
             n_jobs=-1,
             tree_method="hist",
             eval_metric="logloss",
@@ -90,13 +92,12 @@ def build_pipeline(
             ("cat", cat_pipe, categorical),
         ],
         remainder="drop",
-        sparse_threshold=0.0,
     )
     
     base = _make_estimator(backend=backend, y=y)
     
     clf = CalibratedClassifierCV(
-        base_estimator=base, cv=calibration_cv, method=calibration_method
+        estimator=base, cv=calibration_cv, method=calibration_method
     )
     
     return Pipeline(steps=[("pre", pre), ("clf", clf)])

@@ -1,17 +1,17 @@
 import json
+import logging
+from contextlib import asynccontextmanager
 from typing import Any, Dict, List
+
 import joblib
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 
-
 from .config import PIPELINE_PATH, METADATA_PATH, DEFAULT_THRESHOLD
 from .schemas import CreditApplication
-from contextlib import asynccontextmanager
 
-
-app = FastAPI(title="Consumer Lending Risk Demo")
+logger = logging.getLogger(__name__)
 
 _pipeline = None
 _metadata: Dict[str, Any] = {}
@@ -27,22 +27,24 @@ def _payload_to_dict(app_data: CreditApplication) -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup/shutdown."""
-    # Startup
     global _pipeline, _metadata
     try:
         _pipeline = joblib.load(PIPELINE_PATH)
         with open(METADATA_PATH) as f:
             _metadata = json.load(f)
+        logger.info(
+            "Model loaded: %s (trained %s)",
+            _metadata.get("model_type"),
+            _metadata.get("trained_at"),
+        )
     except Exception as exc:
         _pipeline = None
         _metadata = {"load_error": str(exc)}
-    
-    yield
-    
-    # Shutdown (if needed in future)
-    pass
+        logger.warning("Model failed to load: %s", exc)
 
-# Update app creation
+    yield
+
+
 app = FastAPI(title="Consumer Lending Risk Demo", lifespan=lifespan)
 
 
@@ -54,7 +56,7 @@ def health():
             "status": "error",
             "detail": _metadata.get("load_error", "model not loaded"),
         }
-    
+
     return {
         "status": "ok",
         "model_trained_at": _metadata.get("trained_at"),
@@ -74,40 +76,41 @@ def score(app_data: CreditApplication):
             status_code=503,
             detail=_metadata.get("load_error", "model not loaded"),
         )
-    
+
     features: List[str] = _metadata.get("features") or []
     if not features:
         raise HTTPException(
             status_code=500,
             detail="model metadata missing features",
         )
-    
+
     payload = _payload_to_dict(app_data)
-    
-    # Validate contract
+
+    # Validate feature contract against training metadata
     missing = [c for c in features if c not in payload]
     extra = [c for c in payload if c not in features]
-    
+
     if missing:
         raise HTTPException(
             status_code=400,
             detail=f"missing features: {missing}",
         )
-    
-    # Drop unexpected fields silently
-    for c in extra:
-        payload.pop(c, None)
-    
+
+    if extra:
+        logger.debug("Dropping extra fields not in training schema: %s", extra)
+        for c in extra:
+            payload.pop(c, None)
+
     # Create DataFrame in correct column order
     X = pd.DataFrame([[payload[c] for c in features]], columns=features)
-    
+
     # Predict
     p_vec = _pipeline.predict_proba(X)[0]
     p1 = float(p_vec[1])
     threshold = float(_metadata.get("threshold", DEFAULT_THRESHOLD))
-    
+
     return {
-        "default_probability": p1,
+        "default_probability": round(p1, 6),
         "prediction": int(p1 >= threshold),
         "threshold": threshold,
         "model_info": {

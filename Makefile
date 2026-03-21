@@ -11,13 +11,10 @@ data:
 train:
 	$(PY) -m src.train --backend $(BACKEND)
 
-eval:
-	$(PY) -m src.eval
-
 serve:
 	$(RUN)
 
 test:
 	pytest -q
 
-.PHONY: prepare data train eval serve test
+.PHONY: prepare data train serve test

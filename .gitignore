@@ -23,3 +23,6 @@ htmlcov/
 artifacts/
 data/processed/
 data/raw/Loan_Default.csv
+
+# Others
+nb2html.py

@@ -1,6 +1,7 @@
 import pandas as pd
+import numpy as np
 from src.data_prep import basic_clean
-from src.config import TARGET_COLUMN
+from src.config import TARGET_COLUMN, LEAKY_COLS
 
 
 def test_rename_map_applied_and_id_dropped():
@@ -13,13 +14,49 @@ def test_rename_map_applied_and_id_dropped():
         }
     )
     out = basic_clean(df)
-    
+
     # Check rename happened
     assert "co_applicant_credit_type" in out.columns
     assert "co-applicant_credit_type" not in out.columns
-    
+
     # Check ID dropped
     assert "ID" not in out.columns
-    
+
     # Check target preserved
     assert out[TARGET_COLUMN].isna().sum() == 0
+
+
+def test_missing_target_rows_dropped():
+    """Rows with NaN target are removed; other NaNs are preserved for pipeline."""
+    df = pd.DataFrame(
+        {
+            "loan_amount": [100_000, np.nan, 120_000],
+            TARGET_COLUMN: [0, 1, 1],
+        }
+    )
+    out = basic_clean(df)
+    assert len(out) == 3
+    # The NaN in loan_amount should still be there (pipeline handles it)
+    assert out["loan_amount"].isna().sum() == 1
+
+
+def test_leaky_columns_dropped():
+    """Leaky post-origination columns are removed during cleaning."""
+    df = pd.DataFrame(
+        {
+            "loan_amount": [100_000, 200_000],
+            "rate_of_interest": [3.5, np.nan],
+            "Interest_rate_spread": [0.5, np.nan],
+            "Upfront_charges": [1200, np.nan],
+            "property_value": [250_000, np.nan],
+            "LTV": [40.0, np.nan],
+            TARGET_COLUMN: [0, 1],
+        }
+    )
+    out = basic_clean(df)
+
+    for col in LEAKY_COLS:
+        assert col not in out.columns, f"{col} should have been dropped"
+
+    # Non-leaky columns survive
+    assert "loan_amount" in out.columns
