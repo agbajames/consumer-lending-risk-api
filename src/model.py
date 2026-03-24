@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import Any, List, Optional, Tuple
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
@@ -15,7 +15,7 @@ def split_feature_types(X) -> Tuple[List[str], List[str]]:
     return numeric, categorical
 
 
-def _make_estimator(*, backend: str, y: Optional[object]):
+def _make_estimator(*, backend: str, y: Optional[Any] = None):
     """Create a base estimator for the given backend."""
     if backend == "lightgbm":
         from lightgbm import LGBMClassifier
@@ -71,7 +71,7 @@ def build_pipeline(
     categorical: List[str],
     *,
     backend: str = "lightgbm",
-    y: Optional[object] = None,
+    y: Optional[Any] = None,
     calibration_method: str = "sigmoid",
     calibration_cv: int = 5,
 ) -> Pipeline:
