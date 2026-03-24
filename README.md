@@ -6,7 +6,7 @@
 
 Production-style credit default prediction API demonstrating robust ML engineering patterns for credit risk modelling. Built with LightGBM/XGBoost, FastAPI, and comprehensive automated testing.
 
-> 📓 **[View rendered notebook](https://htmlpreview.github.io/?https://github.com/agbajames/consumer-lending-risk-api/blob/main/pipeline.html)** — EDA, leakage analysis, model evaluation, and threshold review.
+> 📓 **[View rendered notebook](https://agbajames.github.io/consumer-lending-risk-api/pipeline.html)** — EDA, leakage analysis, model evaluation, and threshold review.
 
 ## Overview
 
