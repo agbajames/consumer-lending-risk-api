@@ -21,12 +21,15 @@ def _make_estimator(*, backend: str, y: Optional[object]):
         from lightgbm import LGBMClassifier
         
         return LGBMClassifier(
-            n_estimators=600,
-            learning_rate=0.05,
-            num_leaves=31,
-            max_depth=-1,
-            subsample=0.9,
-            colsample_bytree=0.9,
+            n_estimators=500,
+            learning_rate=0.0552,
+            num_leaves=28,
+            max_depth=9,
+            subsample=0.744,
+            colsample_bytree=0.811,
+            reg_alpha=5.12e-07,
+            reg_lambda=3.58e-04,
+            min_child_samples=20,
             class_weight="balanced",  # handles imbalance
             random_state=RANDOM_STATE,
             n_jobs=-1,
@@ -43,13 +46,15 @@ def _make_estimator(*, backend: str, y: Optional[object]):
             spw = (neg + 1e-6) / (pos + 1e-6)
         
         return XGBClassifier(
-            n_estimators=800,
-            learning_rate=0.05,
+            n_estimators=900,
+            learning_rate=0.0204,
             max_depth=6,
-            subsample=0.9,
-            colsample_bytree=0.9,
-            reg_lambda=1.0,
-            reg_alpha=0.0,
+            subsample=0.631,
+            colsample_bytree=0.884,
+            reg_alpha=7.72e-06,
+            reg_lambda=5.390,
+            min_child_weight=2,
+            gamma=0.0513,
             random_state=RANDOM_STATE,
             n_jobs=-1,
             tree_method="hist",

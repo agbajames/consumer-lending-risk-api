@@ -48,17 +48,3 @@ docker run -p 8000:8000 credit-risk-api
 # Test
 curl http://localhost:8000/health
 ```
-
-
-
-python -m venv venv && source venv/bin/activate
-
-pip install -r requirements.txt
-
-jupyter notebook pipeline.ipynb
-
-deactivate && rm -rf venv
-
-python nb2html.py pipeline.ipynb -o pipeline.html
-
-git clone https://github.com/agbajames/consumer-lending-risk-api.git temp-repo

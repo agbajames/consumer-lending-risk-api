@@ -30,13 +30,15 @@ def test_missing_target_rows_dropped():
     """Rows with NaN target are removed; other NaNs are preserved for pipeline."""
     df = pd.DataFrame(
         {
-            "loan_amount": [100_000, np.nan, 120_000],
-            TARGET_COLUMN: [0, 1, 1],
+            "loan_amount": [100_000, np.nan, 120_000, 90_000],
+            TARGET_COLUMN: [0, 1, 1, np.nan],  # row 3 has no label — should be dropped
         }
     )
     out = basic_clean(df)
+    # Row with NaN target must be gone
     assert len(out) == 3
-    # The NaN in loan_amount should still be there (pipeline handles it)
+    assert out[TARGET_COLUMN].isna().sum() == 0
+    # NaN in a feature column must survive (imputation is the pipeline's job)
     assert out["loan_amount"].isna().sum() == 1
 
 

@@ -6,6 +6,8 @@
 
 Production-style credit default prediction API demonstrating robust ML engineering patterns for credit risk modelling. Built with LightGBM/XGBoost, FastAPI, and comprehensive automated testing.
 
+> 📓 **[View rendered notebook](https://htmlpreview.github.io/?https://github.com/agbajames/consumer-lending-risk-api/blob/main/pipeline.html)** — EDA, leakage analysis, model evaluation, and threshold review.
+
 ## Overview
 
 This project implements an end-to-end machine learning system for consumer lending risk assessment using a public loan application dataset. It focuses on a core real-world modelling problem in credit risk: producing reliable default probabilities while detecting and eliminating target leakage that can otherwise create misleadingly perfect performance.
@@ -104,6 +106,8 @@ make train    # Train model (default: lightgbm)
 make serve    # Start API server
 make test     # Run tests
 ```
+
+> **Note:** `artifacts/` is gitignored, so a fresh clone contains no trained model. Run `make data && make train` before `make serve` — otherwise the API will start but return a 503 on `/score`.
 
 ## API Endpoints
 
@@ -248,7 +252,10 @@ curl http://localhost:8000/health
 
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 
 # Run tests with coverage
 pytest --cov=src --cov-report=html -v
