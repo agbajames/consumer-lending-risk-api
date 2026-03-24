@@ -19,7 +19,7 @@ def _make_estimator(*, backend: str, y: Optional[object]):
     """Create a base estimator for the given backend."""
     if backend == "lightgbm":
         from lightgbm import LGBMClassifier
-        
+
         return LGBMClassifier(
             n_estimators=500,
             learning_rate=0.0552,
@@ -34,17 +34,17 @@ def _make_estimator(*, backend: str, y: Optional[object]):
             random_state=RANDOM_STATE,
             n_jobs=-1,
         )
-    
+
     elif backend == "xgboost":
         from xgboost import XGBClassifier
-        
+
         spw = 1.0
         if y is not None:
             # Standard scale_pos_weight = neg / pos
             pos = float((y == 1).sum())
             neg = float((y == 0).sum())
             spw = (neg + 1e-6) / (pos + 1e-6)
-        
+
         return XGBClassifier(
             n_estimators=900,
             learning_rate=0.0204,
@@ -61,7 +61,7 @@ def _make_estimator(*, backend: str, y: Optional[object]):
             eval_metric="logloss",
             scale_pos_weight=spw,
         )
-    
+
     else:
         raise ValueError(f"Unknown backend: {backend}")
 
@@ -77,20 +77,20 @@ def build_pipeline(
 ) -> Pipeline:
     """
     Build a full pipeline with preprocessing + calibrated classifier.
-    
+
     backend ∈ {"lightgbm", "xgboost"}.
     y is used to compute scale_pos_weight for XGBoost.
     """
     # Preprocessing – impute only (trees do not need scaling)
     num_pipe = Pipeline(steps=[("impute", SimpleImputer(strategy="median"))])
-    
+
     cat_pipe = Pipeline(
         steps=[
             ("impute", SimpleImputer(strategy="most_frequent")),
             ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
         ]
     )
-    
+
     pre = ColumnTransformer(
         transformers=[
             ("num", num_pipe, numeric),
@@ -98,11 +98,11 @@ def build_pipeline(
         ],
         remainder="drop",
     )
-    
+
     base = _make_estimator(backend=backend, y=y)
-    
+
     clf = CalibratedClassifierCV(
         estimator=base, cv=calibration_cv, method=calibration_method
     )
-    
+
     return Pipeline(steps=[("pre", pre), ("clf", clf)])

@@ -18,15 +18,15 @@ def test_pipeline_fits_and_predicts(backend):
     )
     X = df.drop(columns=["Status"])
     y = df["Status"].astype(int)
-    
+
     num, cat = split_feature_types(X)
     pipe = build_pipeline(num, cat, backend=backend, y=y, calibration_cv=2)
-    
+
     # Should fit without error
     pipe.fit(X, y)
-    
+
     # Should predict probabilities
     proba = pipe.predict_proba(X)[:, 1]
-    
+
     assert proba.shape == (len(X),)
     assert np.all((proba >= 0) & (proba <= 1))
